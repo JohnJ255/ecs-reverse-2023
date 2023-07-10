@@ -21,6 +21,10 @@ func NewScreenLimiter(f *framework.Framework) *InScreenLimit {
 }
 
 func (isl *InScreenLimit) Update(e *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(e.World); ok {
+		return
+	}
+
 	donburi.NewQuery(filter.Contains(component.Spatial, tags.InScreen)).Each(e.World, func(entry *donburi.Entry) {
 		levelEntry, ok := component.CurrentLevel.First(e.World)
 		if !ok {

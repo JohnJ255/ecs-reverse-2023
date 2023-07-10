@@ -4,10 +4,16 @@ import (
 	"ecs_test_cars/ecs/component"
 	"ecs_test_cars/ecs/tags"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/filter"
 )
 
 var Control = func(ecs *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(ecs.World); ok {
+		return
+	}
+
 	player, ok := tags.Player.First(ecs.World)
 	if !ok {
 		return

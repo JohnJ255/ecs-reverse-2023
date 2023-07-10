@@ -11,7 +11,7 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-var levelFillters = []component.ILevel{
+var levelFillers = []component.ILevel{
 	nil,
 	&levels.Level1{},
 	&levels.Level2{},
@@ -22,19 +22,23 @@ var levelFillters = []component.ILevel{
 	&levels.LevelAbout{},
 }
 
-type SceneManager struct {
+type LevelsManager struct {
 	curLevelQ    *donburi.Query
 	changeLevelQ *donburi.Query
 }
 
-func NewSceneManager() *SceneManager {
-	return &SceneManager{
+func NewLevelsManager() *LevelsManager {
+	return &LevelsManager{
 		curLevelQ:    donburi.NewQuery(filter.Contains(component.CurrentLevel)),
 		changeLevelQ: donburi.NewQuery(filter.Contains(component.ChangeLevel)),
 	}
 }
 
-func (s *SceneManager) Update(ecs *ecs.ECS) {
+func (s *LevelsManager) Update(ecs *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(ecs.World); ok {
+		return
+	}
+
 	if entry, ok := tags.LevelStart.First(ecs.World); ok {
 		entry.RemoveComponent(tags.LevelStart)
 	}
@@ -59,30 +63,25 @@ func (s *SceneManager) Update(ecs *ecs.ECS) {
 	}
 }
 
-func (s *SceneManager) changeLevel(e *ecs.ECS, newLevel *component.ChangeLevelData) {
+func (s *LevelsManager) changeLevel(e *ecs.ECS, newLevel *component.ChangeLevelData) {
 	if entry, ok := s.curLevelQ.First(e.World); ok {
 		curLevel := component.CurrentLevel.Get(entry)
 		curLevel.IsFilled = false
-		curLevel.Index = framework.Limited(newLevel.Index, 1, len(levelFillters)-1)
+		curLevel.Index = framework.OverLimited(newLevel.Index, 1, len(levelFillers)-1)
 		curLevel.LevelFiller = s.chooseFillter(curLevel.Index)
 		curLevel.Name = fmt.Sprintf("Level %d", curLevel.Index)
-
-		//q := donburi.NewQuery(filter.Contains(component.GameElementTag))
-		//q.Each(e.World, func(entry *donburi.Entry) {
-		//	e.World.Remove(entry.Entity())
-		//})
 	}
 }
 
-func (s *SceneManager) chooseFillter(index int) component.ILevel {
-	if index <= 0 || index > len(levelFillters) {
+func (s *LevelsManager) chooseFillter(index int) component.ILevel {
+	if index <= 0 || index > len(levelFillers) {
 		index = 1
 	}
 
-	return levelFillters[index]
+	return levelFillers[index]
 }
 
-func (s *SceneManager) removeAllGameObjects(e *ecs.ECS) {
+func (s *LevelsManager) removeAllGameObjects(e *ecs.ECS) {
 	tags.GameElement.Each(e.World, func(entry *donburi.Entry) {
 		entry.Remove()
 	})

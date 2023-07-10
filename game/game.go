@@ -1,7 +1,6 @@
 package game
 
 import (
-	"ecs_test_cars/ecs/component"
 	"ecs_test_cars/ecs/renders"
 	"ecs_test_cars/ecs/system"
 	"ecs_test_cars/framework"
@@ -62,7 +61,7 @@ func (g *Game) Start(f *framework.Framework) {
 
 	g.bounds = image.Rectangle{}
 
-	scenes := system.NewSceneManager()
+	scenes := system.NewLevelsManager()
 	audio := system.NewAudioSystem(f.Audio)
 	sprite := &renders.Sprite{}
 	limiter := system.NewScreenLimiter(g.f)
@@ -70,10 +69,12 @@ func (g *Game) Start(f *framework.Framework) {
 	collision := system.NewCollisionSystem()
 	physic := system.NewPhysics()
 	gui := renders.NewGUI(g.fontTTF)
+	menu := system.NewMenu(f.Ecs.World, g.Name, framework.Vec2{300, 120}, framework.Vec2{140, 30})
+	menuRender := renders.NewMenu(g.fontGUI)
 
-	f.Ecs.AddSystem(audio.Update)
+	f.Ecs.AddSystem(system.HotKeys)
+	f.Ecs.AddSystem(menu.Update)
 
-	f.Ecs.AddSystem(system.ScoreManager)
 	f.Ecs.AddSystem(scenes.Update)
 	f.Ecs.AddSystem((&system.CarMoving{}).Update)
 	f.Ecs.AddSystem((&system.TrailerMoving{}).Update)
@@ -81,6 +82,8 @@ func (g *Game) Start(f *framework.Framework) {
 
 	f.Ecs.AddSystem(limiter.Update)
 	f.Ecs.AddSystem(collision.Update)
+	f.Ecs.AddSystem(system.Scores)
+	f.Ecs.AddSystem(audio.Update)
 	f.Ecs.AddSystem(physic.Update)
 
 	f.Ecs.AddSystem(camera.Update)
@@ -90,8 +93,7 @@ func (g *Game) Start(f *framework.Framework) {
 	f.Ecs.AddRenderer(LayerBackground, renders.Level)
 	f.Ecs.AddRenderer(LayerEntities, sprite.Draw)
 	f.Ecs.AddRenderer(LayerGUI, gui.Draw)
-
-	f.Ecs.World.Create(component.CurrentLevel)
+	f.Ecs.AddRenderer(LayerMainMenu, menuRender.Draw)
 }
 
 func (g *Game) Update(dt float64) error {

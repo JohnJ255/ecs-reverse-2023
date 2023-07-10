@@ -2,9 +2,11 @@ package system
 
 import (
 	"ecs_test_cars/ecs/component"
+	"ecs_test_cars/ecs/tags"
 	"ecs_test_cars/framework"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/filter"
 )
 
 type Collision struct {
@@ -16,6 +18,10 @@ func NewCollisionSystem() *Collision {
 }
 
 func (c *Collision) Update(ecs *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(ecs.World); ok {
+		return
+	}
+
 	component.Collider.Each(ecs.World, func(entry *donburi.Entry) {
 		collision := component.Collider.Get(entry)
 

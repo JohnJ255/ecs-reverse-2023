@@ -3,6 +3,7 @@ package system
 import (
 	"ecs_test_cars/ecs/common"
 	"ecs_test_cars/ecs/component"
+	"ecs_test_cars/ecs/tags"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -12,6 +13,10 @@ type TrailerMoving struct {
 }
 
 func (tm *TrailerMoving) Update(e *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(e.World); ok {
+		return
+	}
+
 	donburi.NewQuery(filter.Contains(component.Trailer, component.Spatial, component.Physical)).Each(e.World, func(entry *donburi.Entry) {
 		t := component.Trailer.Get(entry)
 

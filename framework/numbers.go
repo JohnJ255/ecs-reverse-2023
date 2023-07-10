@@ -16,6 +16,16 @@ func Limited[T numbers](x, min, max T) T {
 	return x
 }
 
+func OverLimited[T numbers](x, min, max T) T {
+	for x < min {
+		x = max - (min - x - 1)
+	}
+	for x > max {
+		x = min + (x - max - 1)
+	}
+	return x
+}
+
 func Stepped(from, to, stepSize float64) float64 {
 	if math.Abs(from-to) <= stepSize {
 		return to

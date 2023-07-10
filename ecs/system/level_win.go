@@ -10,6 +10,10 @@ import (
 )
 
 func LevelWin(e *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(e.World); ok {
+		return
+	}
+
 	donburi.NewQuery(filter.Contains(component.Collision, component.Trigger)).Each(e.World, func(entry *donburi.Entry) {
 		t := component.Trigger.Get(entry)
 		if t.TriggerType != component.TriggerTypeWin {
@@ -30,6 +34,7 @@ func LevelWin(e *ecs.ECS) {
 			if math.Abs(sp.Rotation.NormalizePi2().F64()) < math.Pi/18 {
 				levelEntry := component.CurrentLevel.MustFirst(e.World)
 				level := component.CurrentLevel.Get(levelEntry)
+				levelEntry.AddComponent(tags.LevelWin)
 				levelEntry.AddComponent(component.ChangeLevel)
 				component.ChangeLevel.SetValue(levelEntry, component.ChangeLevelData{
 					Index: level.Index + 1,

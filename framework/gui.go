@@ -10,7 +10,7 @@ import (
 )
 
 type IGUIElement interface {
-	Draw(screen *ebiten.Image, x, y, w, h int)
+	Draw(screen *ebiten.Image, x, y, w, h int, fontFace font.Face)
 	Update()
 }
 
@@ -23,27 +23,25 @@ type Button struct {
 	StrokeColor color.Color
 	position    Vec2
 	size        Size
-	fontFace    font.Face
 }
 
-func NewButton(text string, onClick func(), fontFace font.Face) *Button {
+func NewButton(text string, onClick func(), isEnabled bool) *Button {
 	return &Button{
 		IsVisible:   true,
-		IsEnabled:   true,
+		IsEnabled:   isEnabled,
 		Text:        text,
 		OnClick:     onClick,
 		FillColor:   color.NRGBA{100, 100, 100, 255},
 		StrokeColor: color.White,
-		fontFace:    fontFace,
 	}
 }
 
-func (b *Button) Draw(screen *ebiten.Image, x, y, w, h int) {
+func (b *Button) Draw(screen *ebiten.Image, x, y, w, h int, fontFace font.Face) {
 	b.position = Vec2{float64(x), float64(y)}
 	b.size = Size{float64(w), float64(h)}
 	vector.DrawFilledRect(screen, float32(x), float32(y), float32(w), float32(h), b.FillColor, false)
 	vector.StrokeRect(screen, float32(x), float32(y), float32(w), float32(h), 2, b.StrokeColor, false)
-	text.Draw(screen, b.Text, b.fontFace, x+w/2-len(b.Text)*4, y+h/2+7, color.NRGBA{230, 240, 250, 255})
+	text.Draw(screen, b.Text, fontFace, x+w/2-len(b.Text)*4, y+h/2+7, color.NRGBA{230, 240, 250, 255})
 }
 
 func (b *Button) Update() {
@@ -60,7 +58,7 @@ type Label struct {
 	*Button
 }
 
-func NewLabel(text string, fontFace font.Face) *Label {
+func NewLabel(text string) *Label {
 	return &Label{
 		&Button{
 			IsVisible:   true,
@@ -68,15 +66,14 @@ func NewLabel(text string, fontFace font.Face) *Label {
 			Text:        text,
 			FillColor:   color.NRGBA{100, 100, 100, 255},
 			StrokeColor: color.White,
-			fontFace:    fontFace,
 		},
 	}
 }
 
-func (l *Label) Draw(screen *ebiten.Image, x, y, w, h int) {
+func (l *Label) Draw(screen *ebiten.Image, x, y, w, h int, fontFace font.Face) {
 	l.position = Vec2{float64(x), float64(y)}
 	l.size = Size{float64(w), float64(h)}
-	text.Draw(screen, l.Text, l.fontFace, x+w/2-len(l.Text)*4, y+h/2+7, color.NRGBA{230, 240, 250, 255})
+	text.Draw(screen, l.Text, fontFace, x+w/2-len(l.Text)*4, y+h/2+7, color.NRGBA{230, 240, 250, 255})
 }
 
 func (l *Label) Update() {
@@ -95,7 +92,7 @@ func NewHorizontalPanel(elements []IGUIElement, percents []float64) *Panel {
 	}
 }
 
-func (p *Panel) Draw(screen *ebiten.Image, x, y, w, h int) {
+func (p *Panel) Draw(screen *ebiten.Image, x, y, w, h int, fontFace font.Face) {
 	dx := 0
 	for i, el := range p.elements {
 		percent := 20.0
@@ -103,7 +100,7 @@ func (p *Panel) Draw(screen *ebiten.Image, x, y, w, h int) {
 			percent = p.sizePercents[i]
 		}
 		cw := int(float64(w) * percent / 100)
-		el.Draw(screen, x+dx, y, cw, h)
+		el.Draw(screen, x+dx, y, cw, h, fontFace)
 		dx += cw
 	}
 }

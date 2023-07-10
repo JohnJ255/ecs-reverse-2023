@@ -3,8 +3,8 @@ package system
 import (
 	"ecs_test_cars/ecs/common"
 	"ecs_test_cars/ecs/component"
+	"ecs_test_cars/ecs/tags"
 	"ecs_test_cars/framework"
-	"fmt"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -21,6 +21,10 @@ func NewPhysics() *Physics {
 }
 
 func (p *Physics) Update(ecs *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(ecs.World); ok {
+		return
+	}
+
 	p.physicsQuery.Each(ecs.World, func(entry *donburi.Entry) {
 		collide := *component.Collision.Get(entry)
 		other := ecs.World.Entry(collide.WithEntity)
@@ -117,7 +121,6 @@ func (p *Physics) traileredTraktorPhysics(w donburi.World, trailerEntry *donburi
 	trailer := component.Trailer.Get(trailerEntry)
 	if trailer.Traktor != nil {
 		k := cs.MoveOut.Length()
-		fmt.Println("traileredTraktorPhysics", k)
 		sp := component.Spatial.Get(w.Entry(*trailer.Traktor))
 		car := component.Car.Get(w.Entry(*trailer.Traktor))
 		sp.Position.X += (k - car.Speed) * sp.Rotation.Cos()

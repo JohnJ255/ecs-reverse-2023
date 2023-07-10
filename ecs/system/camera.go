@@ -20,6 +20,10 @@ func NewFollowCamera(f *framework.Framework) *Camera {
 }
 
 func (c *Camera) Update(ecs *ecs.ECS) {
+	if _, ok := donburi.NewQuery(filter.Contains(component.Menu, tags.Pause)).First(ecs.World); ok {
+		return
+	}
+
 	q := donburi.NewQuery(filter.Contains(tags.Player, component.Spatial))
 	player, ok := q.First(ecs.World)
 	if !ok {
